@@ -10,6 +10,10 @@ import pixabayAPI from '../../services/pixabay-api';
 import { ImageGalleryStyled } from './ImageGallery.styled';
 
 class ImageGallery extends Component {
+  static propTypes = {
+    query: PropTypes.string,
+  }
+
   state = { loading: false, page: 1, largeImg: null, items: [] };
 
   componentDidUpdate(prevProps, prevState) {
@@ -37,11 +41,12 @@ class ImageGallery extends Component {
 
     pixabayAPI
       .fetchImages(query, page)
-      .then(data =>
-        this.setState(prevState => ({
-          items: isNewQuery ? data.hits : [...prevState.items, ...data.hits],
+      .then(data => {
+        const items = data.hits.map(({ id, webformatURL, largeImageURL }) => ({ id, webformatURL, largeImageURL }));
+        return this.setState(prevState => ({
+          items: isNewQuery ? items : [...prevState.items, ...items],
         }))
-      )
+      })
       .finally(() => {
         this.setState({ loading: false });
       });
@@ -62,6 +67,8 @@ class ImageGallery extends Component {
   render() {
     const { items, loading, largeImg } = this.state;
     const { query } = this.props;
+
+    if (items.length === 0) return null;
 
     return (
       <div>
@@ -92,7 +99,3 @@ class ImageGallery extends Component {
 }
 
 export default ImageGallery;
-
-ImageGallery.propTypes = {
-  query: PropTypes.string,
-};
